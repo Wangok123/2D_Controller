@@ -5,9 +5,12 @@ namespace MyNamespace
 {
     public class Player : MonoBehaviour
     {
-        float moveSpeed = 6;
-        float gravity = -20f;
-        float jumpVelocity = 10;
+        private float jumpHeight;
+        private float timeToJumpApex;
+        
+        float moveSpeed;
+        float gravity;
+        float jumpVelocity;
         Vector3 velocity;
         bool shouldJump; // 添加一个字段来存储跳跃指令
 
