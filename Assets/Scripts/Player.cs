@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 namespace MyNamespace
@@ -7,8 +6,10 @@ namespace MyNamespace
     public class Player : MonoBehaviour
     {
         float moveSpeed = 6;
-        float gravity = -20;
+        float gravity = -20f;
+        float jumpVelocity = 10;
         Vector3 velocity;
+        bool shouldJump; // 添加一个字段来存储跳跃指令
 
         Controller2D controller;
 
@@ -16,14 +17,35 @@ namespace MyNamespace
         {
             controller = GetComponent<Controller2D>();
         }
-      
-        void  Update() {
 
-            // Vector2 input = new Vector2 (Input.GetAxisRaw ("Horizontal"), Input.GetAxisRaw ("Vertical"));
-            //
-            // velocity.x = input.x * moveSpeed;
-            velocity.y += gravity * Time.deltaTime;
-            controller.Move (velocity * Time.deltaTime);
+        void Update()
+        {
+            // 检测并存储是否应当跳跃的指令
+            if (Input.GetKeyDown(KeyCode.Space) && controller.collisions.below)
+            {
+                shouldJump = true;
+            }
+        }
+  
+        void FixedUpdate()
+        {
+            if (controller.collisions.above || controller.collisions.below)
+            {
+                velocity.y = 0;
+            }
+
+            Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        
+            if (shouldJump)
+            {
+                velocity.y = jumpVelocity;
+                shouldJump = false; // 重置跳跃指令
+            }
+        
+            velocity.x = input.x * moveSpeed;
+            velocity.y += gravity * Time.fixedDeltaTime; // 注意是使用 Time.fixedDeltaTime
+            controller.Move(velocity * Time.fixedDeltaTime);
+
         }
     }
 }
