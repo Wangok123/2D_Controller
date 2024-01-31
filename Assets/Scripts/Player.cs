@@ -57,7 +57,7 @@ namespace MyNamespace
             velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, controller.collisions.below ? accelerationTimeGrounded:accelerationTimeAirborne);
             velocity.y += gravity * Time.fixedDeltaTime; // 注意是使用 Time.fixedDeltaTime
             controller.Move(velocity * Time.fixedDeltaTime);
-
+ 
         }
     }
 }
