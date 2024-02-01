@@ -4,29 +4,17 @@ using UnityEngine;
 
 namespace MyNamespace
 {
-    [RequireComponent(typeof(BoxCollider2D))]
-    public class Controller2D : MonoBehaviour
+
+    public class Controller2D : RaycastController
     {
-        public LayerMask collisionMask;
-
-        const float skinWidth = .015f;
-        public int horizontalRayCount = 4;
-        public int verticalRayCount = 4;
-
         private float maxClimbAngle = 80;
         private float maxDescendAngle = 75;
-        
-        float horizontalRaySpacing;
-        float verticalRaySpacing;
 
-        BoxCollider2D collider;
-        RaycastOrigins raycastOrigins;
         public CollectionInfo collisions;
 
-        void Start()
+        public override void Start()
         {
-            collider = GetComponent<BoxCollider2D>();
-            CalculateRaySpacing();
+            base.Start();
         }
 
         // 1. 检测水平方向的碰撞
@@ -160,7 +148,7 @@ namespace MyNamespace
         }
 
         // 4. 爬坡, 同时速度以velocity.x为准
-        void ClimbSlope(ref Vector3 velocity, float slopeAngle)
+        public void ClimbSlope(ref Vector3 velocity, float slopeAngle)
         {
             float moveDistance = Mathf.Abs(velocity.x);
             float climbVelocityY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
@@ -176,7 +164,7 @@ namespace MyNamespace
             }
         }
         
-        void DescendSlope(ref Vector3 velocity)
+        public void DescendSlope(ref Vector3 velocity)
         {
             float directionX = Mathf.Sign(velocity.x);
             Vector2 rayOrigin = directionX == -1 ? raycastOrigins.bottomRight:raycastOrigins.bottomLeft;
@@ -204,38 +192,7 @@ namespace MyNamespace
             }
         }
         
-        // 5. 更新射线原点
-        void UpdateRaycastOrigins()
-        {
-            Bounds bounds = collider.bounds;
-            bounds.Expand(skinWidth * -2);
 
-            raycastOrigins.bottomLeft = new Vector2(bounds.min.x, bounds.min.y);
-            raycastOrigins.bottomRight = new Vector2(bounds.max.x, bounds.min.y);
-            raycastOrigins.topLeft = new Vector2(bounds.min.x, bounds.max.y);
-            raycastOrigins.topRight = new Vector2(bounds.max.x, bounds.max.y);
-        }
-
-        // 6. 计算射线间隔
-        void CalculateRaySpacing()
-        {
-            Bounds bounds = collider.bounds;
-            bounds.Expand(skinWidth * -2);
-
-            horizontalRayCount = Mathf.Clamp(horizontalRayCount, 2, int.MaxValue);
-            verticalRayCount = Mathf.Clamp(verticalRayCount, 2, int.MaxValue);
-
-            horizontalRaySpacing = bounds.size.y / (horizontalRayCount - 1);
-            verticalRaySpacing = bounds.size.x / (verticalRayCount - 1);
-        }
-
-        // 7. 射线原点
-        struct RaycastOrigins
-        {
-            public Vector2 topLeft, topRight;
-            public Vector2 bottomLeft, bottomRight;
-        }
-        
         // 8. 碰撞信息
         public struct CollectionInfo
         {
