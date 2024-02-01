@@ -14,6 +14,7 @@ namespace MyNamespace
         public int verticalRayCount = 4;
 
         private float maxClimbAngle = 80;
+        private float maxDescendAngle = 75;
         
         float horizontalRaySpacing;
         float verticalRaySpacing;
@@ -45,10 +46,17 @@ namespace MyNamespace
                 if (hit)
                 {
                     float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+
                     if (i == 0 && slopeAngle <= maxClimbAngle)
                     {
+                        if (collisions.DescendingSlope)
+                        {
+                            //防止一个斜坡到另一个反向斜坡时，出现停止一帧的情况
+                            collisions.DescendingSlope = false;
+                            velocity = collisions.velocityOld;
+                        }
                         float distanceToSlopeStart = 0;
-                        // 如果在斜坡上，且斜坡角度发生变化，需要调整皮肤宽度
+                        // 且斜坡角度发生变化，需要调整皮肤宽度
                         if(slopeAngle != collisions.slopeAngleOld)
                         {
                             distanceToSlopeStart = hit.distance - skinWidth;
@@ -65,7 +73,7 @@ namespace MyNamespace
                         rayLength = hit.distance;
                     
                         if(collisions.ClimbingSlope)
-                        {//在斜坡上碰撞到左右墙壁时，y轴速度清零
+                        {//在斜坡上碰撞到左右墙壁时，把通过斜坡爬坡得到的y轴速度去掉，
                             velocity.y = Mathf.Tan(collisions.slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(velocity.x);
                         }
                         
@@ -104,6 +112,27 @@ namespace MyNamespace
                     collisions.above = directionY == 1;
                 }
             }
+            
+            if (collisions.ClimbingSlope)
+            {
+                float directionX = Mathf.Sign(velocity.x);
+                rayLength = Mathf.Abs(velocity.x) + skinWidth;
+                Vector2 rayOrigin = (directionX == -1 ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight) +
+                                    Vector2.up * velocity.y;
+                
+                RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
+                
+                if (hit)
+                {
+                    float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+                    // 如果斜坡角度发生变化，需要调整速度
+                    if (slopeAngle != collisions.slopeAngle)
+                    {
+                        velocity.x = (hit.distance - skinWidth) * directionX;
+                        collisions.slopeAngle = slopeAngle;
+                    }
+                }
+            }
         }
 
         // 3. 移动
@@ -111,7 +140,13 @@ namespace MyNamespace
         {
             UpdateRaycastOrigins();
             collisions.Reset();
+            collisions.velocityOld = velocity;
 
+            if (velocity.y < 0)
+            {
+                DescendSlope(ref velocity);
+            }
+            
             if (velocity.x != 0)
             {
                 HorizontalCollisions(ref velocity);
@@ -124,12 +159,13 @@ namespace MyNamespace
             transform.Translate(velocity);
         }
 
-        // 4. 爬坡
+        // 4. 爬坡, 同时速度以velocity.x为准
         void ClimbSlope(ref Vector3 velocity, float slopeAngle)
         {
             float moveDistance = Mathf.Abs(velocity.x);
             float climbVelocityY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
             
+            // 如果velocity.y大于爬坡速度，证明在跳跃，不需要爬坡
             if (velocity.y <= climbVelocityY)
             {
                 velocity.y = climbVelocityY;
@@ -137,6 +173,34 @@ namespace MyNamespace
                 collisions.below = true;
                 collisions.ClimbingSlope = true;
                 collisions.slopeAngle = slopeAngle;
+            }
+        }
+        
+        void DescendSlope(ref Vector3 velocity)
+        {
+            float directionX = Mathf.Sign(velocity.x);
+            Vector2 rayOrigin = directionX == -1 ? raycastOrigins.bottomRight:raycastOrigins.bottomLeft;
+            RaycastHit2D hit = Physics2D.Raycast(rayOrigin, -Vector2.up, Mathf.Infinity, collisionMask);
+            if (hit)
+            {
+                float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+                if (slopeAngle != 0 && slopeAngle <= maxDescendAngle)
+                {
+                    if (Mathf.Sign(hit.normal.x) == directionX)
+                    {
+                        if (hit.distance - skinWidth <= Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(velocity.x))
+                        {
+                            float moveDistance = Mathf.Abs(velocity.x);
+                            float descendVelocityY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
+                            velocity.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(velocity.x);
+                            velocity.y -= descendVelocityY;
+                            
+                            collisions.slopeAngle = slopeAngle;
+                            collisions.DescendingSlope = true;
+                            collisions.below = true;
+                        }
+                    }
+                }
             }
         }
         
@@ -177,8 +241,9 @@ namespace MyNamespace
         {
             public bool above, below;
             public bool left, right;
-            
+            public Vector3 velocityOld;
             public bool ClimbingSlope { get; set; }
+            public bool DescendingSlope { get; set; }
             public float slopeAngle , slopeAngleOld;
 
             public void Reset()
@@ -186,6 +251,8 @@ namespace MyNamespace
                 above = below = false;
                 left = right = false;
                 ClimbingSlope = false;
+                DescendingSlope = false;
+                velocityOld = Vector3.zero;
                 slopeAngleOld = slopeAngle;
                 slopeAngle = 0;
             }
