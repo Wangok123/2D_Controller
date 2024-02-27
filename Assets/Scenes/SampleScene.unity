@@ -273,6 +273,9 @@ MonoBehaviour:
   horizontalRaySpacing: 0
   verticalRaySpacing: 0
   collider: {fileID: 0}
+  passengerMask:
+    serializedVersion: 2
+    m_Bits: 256
   move: {x: 0, y: 0, z: 0}
 --- !u!1 &414247404
 GameObject:
