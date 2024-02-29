@@ -276,7 +276,14 @@ MonoBehaviour:
   passengerMask:
     serializedVersion: 2
     m_Bits: 256
-  move: {x: 0, y: 0, z: 0}
+  localWaypoints:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 2, z: 0}
+  - {x: 2, y: 2, z: 0}
+  globalWaypoints: []
+  speed: 2
+  cyclic: 0
+  easeAmount: 0
 --- !u!1 &414247404
 GameObject:
   m_ObjectHideFlags: 0
@@ -352,7 +359,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.05896227, g: 0.12775157, b: 0.23584908, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1399,7 +1406,7 @@ Transform:
   m_GameObject: {fileID: 2049603529}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -12.54, y: 2.74, z: 0}
+  m_LocalPosition: {x: -9.52, y: 2.74, z: 0}
   m_LocalScale: {x: 6.645813, y: 5, z: 1.1856}
   m_ConstrainProportionsScale: 0
   m_Children: []
