@@ -123,7 +123,7 @@ namespace MyNamespace
                     Vector2 rayOrigin = (directionY == -1) ? raycastOrigins.bottomLeft : raycastOrigins.topLeft;
                     rayOrigin += Vector2.right * (verticalRaySpacing * i);
                     RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.up * directionY, rayLength, passengerMask);
-
+                    Debug.DrawRay(rayOrigin, Vector2.up * directionY * rayLength, Color.blue);
                     if (hit)
                     {
                         if (!movedPassengers.Contains(hit.transform))
@@ -149,7 +149,7 @@ namespace MyNamespace
                     rayOrigin += Vector2.up * (horizontalRaySpacing * i);
                     RaycastHit2D hit =
                         Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, passengerMask);
-
+                    Debug.DrawRay(rayOrigin, Vector2.right * directionX * rayLength, Color.yellow);
                     if (hit)
                     {
                         if (!movedPassengers.Contains(hit.transform))
@@ -174,7 +174,7 @@ namespace MyNamespace
                 {
                     Vector2 rayOrigin = raycastOrigins.topLeft + Vector2.right * (verticalRaySpacing * i);
                     RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.up, rayLength, passengerMask);
-
+                    Debug.DrawRay(rayOrigin, Vector2.up * rayLength, Color.green);
                     if (hit)
                     {
                         if (!movedPassengers.Contains(hit.transform))
